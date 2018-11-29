@@ -1,16 +1,19 @@
 ---
 title: "Mind-Wandering-Fluctuations"
-author: "Gabriel King Smith"
-date: "May 3, 2018"
 output: html_document
 ---
 
-This R markdown provides the basis for our manuscript, "Mind wandering rates fluctuate across the day: Evidence from an experience sampling study" (Smith, Mills, Paxton, & Christoff, *submitted*, *Cognitive Research: Principles and Implications*).
+This R markdown provides the basis for our manuscript, "Mind-wandering rates fluctuate across the day: Evidence from an experience-sampling study" (G. K. Smith, C. Mills, A. Paxton, & K. Christoff, *submitted*, *Cognitive Research: Principles and Implications*).
 
 To run these analyses from scratch, you will need the following files:
 
 * `./data/prepped_orig_data.csv`
 * `./data/prepped_rean_data.csv`
+
+Additional information---including the data files above---on this project can be found on our OSF repository: https://osf.io/es3gf/
+
+**Code written by**: G. K Smith & A. Paxton
+<br>**Date last modified**: 2 October 2018
 
 ***
 
@@ -66,7 +69,7 @@ sd(table(as.numeric(dataold$ID)))
 
 ## Participant Exclusion
 
-This section removes all participants from both datasets who failed to answer a minimum of 60 out of the maximum of 100 probes. In the manuscript, all model analyses were additionally conducted without participant removal, which can be reproduced by setting this section to `eval=FALSE`, see Supplementary Materials.
+This section removes all participants from both datasets who failed to answer a minimum of 60 out of the maximum of 100 probes. In the manuscript, all model analyses were additionally conducted without participant removal, which can be reproduced by setting this section to `eval=FALSE`. For these, see Supplementary Materials.
 
 ``` {r exclusion, eval=TRUE}
 
@@ -87,13 +90,16 @@ for (i in 1:max(unique(dataold2$ID))) {
     dataold = dataold[dataold$ID!=i,]
   }
 }
+
+# Preserves a version of the data that keeps the days but only has FMT scores for later
+dataoldFMT = dataold[,c(2,3,6,7)]
 ```
 
 ***
 
 ## Whole Versus Weekend Data
 
-In order to conduct the analyses on the reanalyzed dataset (`dataold`) using only the data collected on weekends, set eval=TRUE. The study ran from September 15th to October 14th, 2016, with the weekend dates being the 17th, 18th, 24th, and 25th of September and the 1st, 2nd, 8th, and 9th of October. See Appendix C.
+In order to conduct the analyses on the reanalyzed dataset (`dataold`) using only the data collected on weekends, set `eval=TRUE`. The study ran from September 15th to October 14th, 2016, with the weekend dates being the 17th, 18th, 24th, and 25th of September and the 1st, 2nd, 8th, and 9th of October. For more, see Appendix C.
 
 ``` {r weekend, eval=FALSE}
 
@@ -106,7 +112,7 @@ dataold = dataold[x==17|x==18|x==24|x==25|x==1|x==2|x==8|x==9,]
 
 ## Hour of the Day Versus Hours Awake Data
 
-In order to conduct the analyses on the original data (`data`) with each probe categorized according to how many hours of the day the person had been awake upon answering, set `eval=TRUE`. See Appendix B.
+In order to conduct the analyses on the original data (`data`) with each probe categorized according to how many hours of the day the person had been awake upon answering, set `eval=TRUE`. For more, see Appendix B.
 
 ```{r awake, eval=FALSE}
 
@@ -142,7 +148,7 @@ dataold.agg = aggregate(Score ~ ID + Hour + Dimension, data=dataold,mean)
 ## Summarize and Trim
 
 Table 1: Find the number of participants who answered at least one probe for each of the
-timeslots, then remove timeslots for which fewer than 25% of participants have any data (6,7,24 for `data.agg`, 23 for `dataold.agg`)
+timeslots, then remove timeslots for which fewer than 25% of participants have any data (6,7,24 for `data.agg`, 23 for `dataold.agg`).
 
 ``` {r summarize_and_trim}
 
@@ -174,7 +180,7 @@ dataold.agg = dataold.agg[!(dataold.agg$Hour==23),]
 
 ## Create Higher-Order Time Variables
 
-Create three sets of orthogonal polynomials (1st order/linear, 2nd order/quadratic, 3rd order/cubic) for the hours of the day represented in the datasets and attach them to each datapoint
+Create three sets of orthogonal polynomials (1st order/linear, 2nd order/quadratic, 3rd order/cubic) for the hours of the day represented in the datasets, and attach them to each datapoint.
 
 ``` {r polynomials}
 if (awake ==TRUE) {
@@ -199,14 +205,13 @@ dataold.agg = dataold.agg[,-5]
 
 ## Separate the Reanalyzed Dataset
 
-Create three seperate datasets from dataold, each with only the ratings of one dimension of thought
+Create three seperate datasets from dataold, each with only the ratings of one dimension of thought.
 
 ```{r separate}
 # Create separate datasets
 dataold.FMagg = dataold.agg[dataold.agg$Dimension=="FMT",-3]
 dataold.TUagg = dataold.agg[dataold.agg$Dimension=="TUT",-3]
 dataold.SIagg = dataold.agg[dataold.agg$Dimension=="SIT",-3]
-
 ```
 
 ***
@@ -285,7 +290,7 @@ data.agg.model3 = lmer(ScaledScore ~ scaled.ot1 + scaled.ot2 + scaled.ot3 +
 # Generates the information for Table 2 - parameter informtion for the cubic model
 summary(data.agg.model3)
 
-# Generate Figure 2 - means and SE lines for FMT ratings at each hour of the day, and a red line to represent predictions of the cubic model
+# Generate Figure 2 - means and SE lines for FMT ratings at each hour of the day, and a red line to represent predictions of the cubic model (the code generates 2a when run normally, evaluate the "since waking" code to generate 2b)
 s = seq(8,24,2)
 if (awake==TRUE) {s = seq(0,16,2)}
 xl = "Hour of the Day"
@@ -310,10 +315,11 @@ ggplot() +
                size=1,
                data=data.agg) +
   theme_bw(base_size=10) + 
-  ylab("Freedom of Movement in Thought") +
+  ylab("Freedom of Movement \nin Thought") + 
+  coord_cartesian(ylim = c(-.5,.3)) +
   xlab(xl) +
   scale_x_continuous(breaks=s) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28)) 
 ```
 
 ***
@@ -378,11 +384,11 @@ ggplot() +
                size=1,
                data=data.agg) +
   theme_bw(base_size=10) + 
-  ylab("Freedom of Movement in Thought") + xlab("Hour of the Day") +
+  ylab("Freedom of Movement \n in Thought") + xlab("Hour of the Day") +
   scale_x_continuous(breaks=seq(8,24,2)) +
   theme(text = element_text(size=15)) +
   coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
 ```
 
 ***
@@ -404,9 +410,9 @@ ggplot() +
   stat_summary(aes(y=ScaledScore,x=Hour),fun.data=mean_se,geom="pointrange",size=1,data=dataold.FMagg) +
   stat_summary(aes(y=fitted(dataold.FMagg.model3),x=dataold.FMagg$Hour),fun.y=mean,geom='line',color='red',size=2) + 
   stat_summary(aes(y=ScaledScore,x=Hour),fun.y=mean,geom='line',size=1,data=dataold.FMagg) +
-  theme_bw(base_size=10) + ylab("Freedom of Movement in Thought") +xlab("Hour of the Day") +
+  theme_bw(base_size=10) + ylab("Freedom of Movement \nin Thought") +xlab("Hour of the Day") +
   scale_x_continuous(breaks=seq(8,24,2)) + coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
   
 
 dataold.TUagg.model3 = lmer(ScaledScore ~ scaled.ot1 + scaled.ot2 + scaled.ot3 + (scaled.ot1 + scaled.ot2 + scaled.ot3 | ID), data = dataold.TUagg,REML=FALSE)
@@ -417,9 +423,9 @@ ggplot() +
   stat_summary(aes(y=ScaledScore,x=Hour),fun.data=mean_se,geom="pointrange",size=1,data=dataold.TUagg) +
   stat_summary(aes(y=fitted(dataold.TUagg.model3),x=dataold.TUagg$Hour),fun.y=mean,geom='line',color='red',size=2) +
   stat_summary(aes(y=ScaledScore,x=Hour),fun.y=mean,geom='line',size=1,data=dataold.TUagg) +
-  theme_bw(base_size=10) + ylab("Task Unrelatedness of Thought") +xlab("Hour of the Day") +
+  theme_bw(base_size=10) + ylab("Task Unrelatedness \nof Thought") +xlab("Hour of the Day") +
   scale_x_continuous(breaks=seq(8,24,2)) + coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
 
 dataold.SIagg.model3 = lmer(ScaledScore ~ scaled.ot1 + scaled.ot2 + scaled.ot3 + (scaled.ot1 + scaled.ot2 + scaled.ot3 | ID), data = dataold.SIagg,REML=FALSE)
 summary(dataold.SIagg.model3)
@@ -429,15 +435,16 @@ ggplot() +
   stat_summary(aes(y=ScaledScore,x=Hour),fun.data=mean_se,geom="pointrange",size=1,data=dataold.SIagg) +
   stat_summary(aes(y=fitted(dataold.SIagg.model3),x=dataold.SIagg$Hour),fun.y=mean,geom='line',color='red',size=2) +
   stat_summary(aes(y=ScaledScore,x=Hour),fun.y=mean,geom='line',size=1,data=dataold.SIagg) +
-  theme_bw(base_size=10) + ylab("Stimulus-Independence of Thought") +xlab("Hour of the Day") +
+  theme_bw(base_size=10) + ylab("Stimulus-Independence \nof Thought") +xlab("Hour of the Day") +
   scale_x_continuous(breaks=seq(8,24,2)) + coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
 ```
 
 ## Differentiation
 
-Tests for differentiation in the daily patterns of each dimension by creating a model representing the combined dataset including interactions between the variable "Dimension" and each of the polynomial time terms.
-The first section of code (set to 'eval=FALSE' by default) reorganizes the levels of `Dimension` so that TUT is input first, allowing for a comparison of the TUT and SIT dimensions. See Supplementary Materials.
+Tests for differentiation in the daily patterns of each dimension by creating a model representing the combined dataset including interactions between the variable `Dimension` and each of the polynomial time terms.
+
+The first section of code (set to `eval=FALSE` by default) reorganizes the levels of `Dimension` so that TUT is input first, allowing for a comparison of the TUT and SIT dimensions. For more, see Supplementary Materials.
 
 ``` {r differentiation_switch, eval=FALSE}
 dataold.agg = rbind(dataold.agg[dataold.agg$Dimension=="TUT",],
@@ -452,7 +459,7 @@ summary(dataold.agg.model3)
 
 ## Model Comparisons
 
-Fits flat, linear, and quadratic models to the data as well, compare model fit amongst them hiearchically, and generates graphs with red (cubic), orange (quadratic), yellow (linear), and green (flat)  lines representing predictions of different models. See Supplementary Materials.
+Fits flat, linear, and quadratic models to the data as well, compare model fit amongst them hiearchically, and generates graphs with red (cubic), orange (quadratic), yellow (linear), and green (flat)  lines representing predictions of different models. For more, see Supplementary Materials.
 
 ``` {r reanalyzed_analysis_appendix}
 dataold.FMagg.model0 = lmer(ScaledScore ~ 1 + (1 | ID), data = dataold.FMagg,REML=FALSE)
@@ -469,10 +476,10 @@ ggplot() +
   stat_summary(aes(y=fitted(dataold.FMagg.model1),x=dataold.FMagg$Hour),fun.y=mean,geom='line',color='yellow',size=2) + 
   stat_summary(aes(y=fitted(dataold.FMagg.model0),x=dataold.FMagg$Hour),fun.y=mean,geom='line',color='green',size=2) + 
   stat_summary(aes(y=ScaledScore,x=Hour),fun.y=mean,geom='line',size=1,data=dataold.FMagg) + theme_bw(base_size=10) + 
-  ylab("Freedom of Movement in Thought") +
+  ylab("Freedom of Movement \nin Thought") +
   xlab("Hour of the Day") + scale_x_continuous(breaks=seq(8,24,2)) + 
   coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
 
 dataold.TUagg.model0 = lmer(ScaledScore ~ 1 + (1 | ID), data = dataold.TUagg,REML=FALSE)
 dataold.TUagg.model1 = lmer(ScaledScore ~ scaled.ot1 + (scaled.ot1 | ID), data = dataold.TUagg,REML=FALSE)
@@ -488,10 +495,10 @@ ggplot() +
   stat_summary(aes(y=fitted(dataold.TUagg.model1),x=dataold.TUagg$Hour),fun.y=mean,geom='line',color='yellow',size=2) + 
   stat_summary(aes(y=fitted(dataold.TUagg.model0),x=dataold.TUagg$Hour),fun.y=mean,geom='line',color='green',size=2) +  
   stat_summary(aes(y=ScaledScore,x=Hour),fun.y=mean,geom='line',size=1,data=dataold.TUagg) + theme_bw(base_size=10) + 
-  ylab("Task Unrelatedness of Thought") +
+  ylab("Task Unrelatedness \nof Thought") +
   xlab("Hour of the Day") + scale_x_continuous(breaks=seq(8,24,2)) + 
   coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
 
 dataold.SIagg.model0 = lmer(ScaledScore ~ 1 + (1 | ID), data = dataold.SIagg,REML=FALSE)
 dataold.SIagg.model1 = lmer(ScaledScore ~ scaled.ot1 + (scaled.ot1 | ID), data = dataold.SIagg,REML=FALSE)
@@ -507,17 +514,56 @@ ggplot() +
   stat_summary(aes(y=fitted(dataold.SIagg.model1),x=dataold.SIagg$Hour),fun.y=mean,geom='line',color='yellow',size=2) + 
   stat_summary(aes(y=fitted(dataold.SIagg.model0),x=dataold.SIagg$Hour),fun.y=mean,geom='line',color='green',size=2) + 
   stat_summary(aes(y=ScaledScore,x=Hour),fun.y=mean,geom='line',size=1,data=dataold.SIagg) + theme_bw(base_size=10) + 
-  ylab("Stimulus-Independence of Thought") +
+  ylab("Stimulus-Independence \nof Thought") +
   xlab("Hour of the Day") + scale_x_continuous(breaks=seq(8,24,2)) + 
   coord_cartesian(ylim = c(-.4,.3)) +
-  theme(text = element_text(size=15))
+  theme(text = element_text(size=28))
 ```
 
 ***
 
+# Stability Estimates
+
+```{r stab1,eval=FALSE}
+subdata = aggregate(FMT~ID,data=data,FUN=mean)
+stab = vector()
+for (x in unique(data$ID)) {
+  stab[x] = sd(data$FMT[data$ID==x],na.rm=TRUE)
+}
+mean(stab)
+
+stab = vector()
+for (x in unique(dataold$ID)) {
+  stab[x] = sd(dataold$Score[dataoldFMT$ID==x],na.rm=TRUE)
+}
+mean(stab,na.rm=TRUE)
+```
+
+```{r stab2}
+# Calculates two scores per-person, representing the proportion of FMT responses above the median (4) for the two days in which they answered the most probes, then gets the absolute difference to form a metric for within-person variability.
+v1 = unique(dataoldFMT$ID)
+p1 = vector()
+p2 = vector()
+med = median(dataoldFMT$FMT,na.rm=TRUE)
+for (i in unique(dataoldFMT$ID)) {
+  dates = names(sort(summary(dataoldFMT$StartDate[dataoldFMT$ID==i]),decreasing=TRUE)[1:2])
+  d1 = dataoldFMT$FMT[(dataoldFMT$ID==i)&(dataoldFMT$StartDate==dates[1])]
+  d2 = dataoldFMT$FMT[(dataoldFMT$ID==i)&(dataoldFMT$StartDate==dates[2])]
+  p1 = c(p1,length(which(d1>med))/length(d1))
+  p2 = c(p2,length(which(d2>med))/length(d2))
+}
+twodays = as.data.frame(cbind(v1,p1,p2))
+twodays$absdif = abs(twodays$p1-twodays$p2)
+twodays$dif = twodays$p1-twodays$p2
+mean(twodays$absdif,na.rm=TRUE)
+sd(twodays$absdif,na.rm=TRUE)
+range(twodays$absdif,na.rm=TRUE)
+```
+***
+
 # Power Analyses
 
-Uses the simr package to estimate observed power through simulation for each of the seven significant parameters across the two studies.
+Uses the `simr` package to estimate observed power through simulation for each of the seven significant parameters across the two studies.
 
 ```{r power}
 # Original analysis
